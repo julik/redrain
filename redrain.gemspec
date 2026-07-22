@@ -23,9 +23,15 @@ Gem::Specification.new do |spec|
   # this gem into a codebase. https://llmstxt.org/
   spec.metadata["llms_txt_uri"]    = "#{spec.homepage}/blob/main/llms.txt"
 
-  # Only what a consumer needs at runtime. The generator, its vendored spec and
-  # the test suite stay out of the packaged gem.
-  spec.files = Dir["lib/**/*.rb", "README.md", "LICENSE.txt", "CHANGELOG.md", "llms.txt"]
+  # The library, its docs, and the design notes under llm/ — the port plan and
+  # methodology explain why the client behaves as it does, which is worth having
+  # to hand when this gem is vendored or read offline. The generator, its
+  # vendored OpenAPI spec and the test suite stay out.
+  spec.files = Dir[
+    "lib/**/*.rb",
+    "llm/**/*.md",
+    "README.md", "LICENSE.txt", "CHANGELOG.md", "llms.txt"
+  ]
   spec.require_paths = ["lib"]
   spec.bindir = "exe"
 
