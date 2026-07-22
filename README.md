@@ -224,9 +224,9 @@ of Stainless output, the deliberate divergences from the Python SDK, the bugs an
 adversarial review caught, and the open questions. `llm/plans/port-plan.md` is
 the original plan.
 
-`llm/outputs/mocking-rain.md` documents Rain's data model, state machines and
-per-endpoint behaviours — written for building a mock server or mock client to
-test against.
+`llm/outputs/mocking-rain.md` is a reference for Rain's data model, enums, state
+machines and per-endpoint behaviours — useful whenever you need to stand in for
+Rain in tests.
 
 ## What was left out of the port
 

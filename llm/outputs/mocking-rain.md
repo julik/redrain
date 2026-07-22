@@ -1,49 +1,25 @@
-# Building a mock Rain
+# Rain Issuing API: data model and behaviour reference
 
-A guide for an agent asked to build a **mock Rain server** or a **mock Rain
-client** for testing against `redrain`. Everything below is extracted from
-`openapi/rain-issuing.json` (Issuing API v1.2.1) — that file is the source of
-truth, and if this doc and the spec disagree, the spec wins.
+What Rain's API contains and how it behaves — entities, fields, enums, state
+machines, and the per-endpoint details that are easy to get wrong.
 
-Read `llm/outputs/port-methodology.md` first if you haven't; it explains why the
-client behaves as it does.
+Everything here is extracted from `openapi/rain-issuing.json` (Issuing API
+v1.2.1). **That file is the source of truth; if this doc and the spec disagree,
+the spec wins.**
 
 ---
 
-## 1. Pick the right thing to build
+## 1. Scope of this document
 
-Three options, cheapest first. **Do not build a server if a stub will do.**
+This is a **reference**, not a recommendation. It describes Rain, and applies
+equally however you choose to stand in for it — a fake client, a fake server,
+WebMock stubs, or fixtures.
 
-| | What it is | Use when |
-| --- | --- | --- |
-| **WebMock stubs** | Per-test HTTP stubs, no shared state | Unit tests. This is what `redrain`'s own suite uses — 60 endpoints covered, zero infrastructure. |
-| **Mock client** | An object quacking like `Redrain::Client`, in-process | Testing *your* code's use of Rain without touching HTTP. Fastest, but proves nothing about wire format. |
-| **Mock server** | A real HTTP server holding state | End-to-end tests, demos, offline development, driving a UI. Only build this when you need Rain to *remember* things across requests. |
+For the decision we actually made and the brief that follows from it, see
+**`build-rain-fake-client.md`**: we mock Rain with an in-process fake client,
+mirroring the existing Kulipa fake in `zay-payouts-backend`.
 
-The distinction that matters: stubs and mock clients verify **your call sites**.
-Only a mock server exercises `redrain` itself — auth headers, camelCase mapping,
-retries, multipart encoding, cursor pagination.
-
-### If you build a mock client
-
-Make it fail loudly when reality diverges. A mock that silently accepts a method
-`redrain` doesn't have is worse than no mock:
-
-```ruby
-class MockRainClient
-  def initialize = @users = MockUsers.new
-  attr_reader :users
-end
-
-# In a test-suite guard — catches drift the day `redrain` is regenerated.
-Redrain::Resources::Users.instance_methods(false).each do |name|
-  raise "MockUsers is missing ##{name}" unless MockUsers.method_defined?(name)
-end
-```
-
-Better still, assert **arity and keywords** match, not just that the name exists.
-`redrain`'s own `test/coverage_test.rb` does this against `resource_map.yml` and
-is worth copying.
+For why the `redrain` client behaves as it does, see `port-methodology.md`.
 
 ---
 
@@ -149,7 +125,7 @@ variant is `{id, type, <payload>}` where the payload key equals the type.
 | `fee` | `fee` | Charge Rain (or you) levied |
 
 Emit **only the matching payload key**. `redrain` merges the variants into one
-class with predicates, so a mock that emits all four keys makes `spend?` and
+class with predicates, so emitting all four keys makes `spend?` and
 `fee?` both true and the model meaningless.
 
 ```json
@@ -172,7 +148,7 @@ on payment). `fee`: `amount`, `description`, `companyId`, `userId`, `postedAt`.
 > **Spec quirk to preserve:** `postedAt` is `date-time` on `collateral` and
 > `fee`, but a bare `string` on `spend` and `payment`. `redrain` therefore
 > returns a `Time` for two variants and a `String` for the other two. Don't
-> normalise this in the mock — you'd hide a real inconsistency.
+> normalise it — you'd hide a real inconsistency.
 
 ### 2.4 Signatures are also a union
 
@@ -189,8 +165,8 @@ the only place in the API with an inherent poll loop, and code that assumes
 
 ## 3. State machines
 
-Model these as real transitions. A mock that lets any status become any other
-will let broken code pass.
+Model these as real transitions. A stand-in that lets any status become any
+other will let broken code pass.
 
 ```mermaid
 stateDiagram-v2
@@ -231,10 +207,11 @@ terminal state — that's the field a client uses to tell "done" from "in flight
 
 ---
 
-## 4. Endpoint behaviours a mock must get right
+## 4. Endpoint behaviours that are easy to get wrong
 
-The full route table lives in `dev/resource_map.yml`. These are the ones with
-behaviour beyond "return the object".
+The full route table lives in `dev/resource_map.yml`. These are the endpoints
+with behaviour beyond "return the object" — the ones where a stand-in that
+guesses will be subtly wrong.
 
 ### 4.1 Status codes are not all 200
 
@@ -285,11 +262,11 @@ Company document types: `directorsRegistry`, `stateRegistry`, `incumbencyCert`,
 `incorporationArticles`, `shareholderRegistry`, `goodStandingCert`,
 `powerOfAttorney`, `other`.
 
-**Have the mock actually parse the multipart body** and assert the filename and
+**Parse the multipart body** where you can, and assert the filename and
 part `Content-Type` arrived. That's the one thing WebMock can't check, and it is
 exactly where `redrain` had two real bugs (a retry uploading an empty file, and a
-crash on non-ASCII filenames). A mock that ignores the body forgoes the main
-reason to build one.
+crash on non-ASCII filenames). Note that an in-process fake client never sees a
+multipart body at all — only something sitting at the HTTP boundary can check it.
 
 ### 4.4 Cursor pagination
 
@@ -360,7 +337,7 @@ descriptions with no content. `redrain` therefore treats the body as opaque and
 exposes `#status`, `#body`, `#headers`, `#request_id`, and a best-effort
 `#error_message` reading `message` or `error`.
 
-So the mock is free to choose a shape — pick one and stay consistent:
+So a stand-in is free to choose a shape — pick one and stay consistent:
 
 ```json
 { "message": "Card not found", "code": "card_not_found" }
@@ -370,89 +347,75 @@ So the mock is free to choose a shape — pick one and stay consistent:
 `redrain` surfaces it as `#request_id`, and code that logs it should be
 exercised.
 
-**Give the mock a way to force failures.** Not for realism — so error paths get
-tested at all. A header is the least intrusive lever:
+**Provide a way to force failures**, so error paths get tested at all. At the
+HTTP boundary a header is the least intrusive lever; in a fake client, an
+explicit test method:
 
-```
-X-Mock-Fail: 429           → rate limit, with Retry-After
-X-Mock-Fail: 500           → server error
-X-Mock-Latency-Ms: 3000    → slow response
+```ruby
+# HTTP boundary — a request header:
+#   X-Mock-Fail: 429          → rate limit, with Retry-After
+#   X-Mock-Latency-Ms: 3000   → slow response
+
+# Fake client — an explicit method, named so it can't be mistaken for the API:
+Rain::FakeClient.fail_next!(Redrain::RateLimitError, status: 429)
 ```
 
 Then assert the client's retry behaviour: **408, 409, 429 and 5xx are retried
 twice** with jittered backoff honouring `Retry-After`; other 4xx are never
-retried. A mock that counts requests per key can verify this directly — it's
-one of the highest-value things a mock server can prove.
+retried. Only something at the HTTP boundary can observe that — an in-process
+fake client is below it and will never see a retry.
 
 ---
 
-## 6. Implementation notes
+## 6. Data-handling rules
 
-**Storage.** Six hashes keyed by id, in memory. Nothing here needs a database.
-Reset between tests; expose `POST /__reset` and `POST /__seed` (under an
-obviously non-Rain prefix so it can never collide with a real route).
+These hold wherever Rain's data is stored or reproduced.
 
-**Determinism.** Seed the RNG. A mock that returns different ids per run makes
-failures irreproducible. Accept an explicit seed and log it.
-
-**Serve camelCase.** The wire format is camelCase throughout — `firstName`,
-`walletAddress`, `companyId`. `redrain` maps to snake_case on the Ruby side. A
-mock emitting snake_case will produce models where every declared field is `nil`
-and every value sits in the unknown-key passthrough — quiet, and confusing to
-diagnose.
+**camelCase is the wire format** — `firstName`, `walletAddress`, `companyId`.
+`redrain` maps to snake_case on the Ruby side. Hold data in camelCase and let
+`Redrain::Model.from_api` convert; snake_case at rest produces models where every
+declared field is `nil` and every value sits in the unknown-key passthrough —
+quiet, and confusing to diagnose.
 
 **Absent ≠ null.** `redrain`'s `Model#key?` distinguishes them. If Rain would
-omit a field, omit it; don't send `"phoneNumber": null`.
+omit a field, omit it; don't store `"phoneNumber": null`.
 
-**Point the client at it** — no code changes needed:
+**Ids are bare UUIDs** (`format: uuid`) — no `usr-`/`crd-` prefix. `redrain`
+escapes path params per RFC 3986 and rejects `.`/`..`, so a malformed id raises
+`ArgumentError` client-side rather than reaching the API.
 
-```ruby
-Redrain::Client.new(api_key: "mock-key", base_url: "http://localhost:4010")
-# or: RAIN_BASE_URL=http://localhost:4010
-```
+**Money is integer cents** throughout, with one exception:
+`CollateralTransaction.amount` is typed `number`. Preserve the inconsistency
+rather than normalising it.
 
-`base_url:` beats `RAIN_BASE_URL` beats `environment:`. Note that `environment:`
-is still validated even when overridden, so pass a valid one or none.
-
-### 6.1 Consider generating it
-
-`redrain` already generates 3,165 lines of client from
-`openapi/rain-issuing.json` via `dev/generate.rb`. A mock server is the same
-problem with the arrows reversed, and the same spec drives both. Before
-hand-writing 60 handlers, consider:
-
-- **Prism** (`@stoplight/prism-cli`) — serves any OpenAPI document as a mock
-  with example/dynamic responses, zero code. Good enough for shape-level testing
-  and available in about a minute. It will **not** give you state, derived
-  balances, or state-machine enforcement.
-- **A generated skeleton** — extend `dev/generate.rb` to emit route handlers,
-  then hand-write only the stateful ones (balances, transactions, signatures).
-  Keeps the mock in lockstep with the spec through `rake sync_spec`.
-
-Reach for a hand-written server only when you need the stateful behaviour.
-Be explicit about which you chose and why.
+**Determinism.** Seed any RNG and log the seed — data that differs per run makes
+failures irreproducible.
 
 ---
 
-## 7. Verifying the mock is honest
+## 7. Keeping a stand-in honest
 
-A mock that drifts from Rain is worse than none: it makes broken code look
+A fake that drifts from Rain is worse than none: it makes broken code look
 correct. Three defences, in order of value:
 
-1. **Validate your own responses against the spec.** Load
-   `openapi/rain-issuing.json`, find the operation, assert the response body
-   matches the schema. This catches the majority of drift for a few lines of
-   work, and it's the single highest-value thing on this list.
-2. **Run `redrain`'s integration suite against the mock.**
-   `test/integration/` exists for exactly the shapes WebMock can't verify —
-   multipart and octet-stream. Point it at the mock via `RAIN_BASE_URL`.
-   Anything that passes against real Rain must pass against the mock.
-3. **Record real responses.** If you have dev credentials, capture real bodies
-   and replay them as fixtures. Redact aggressively — PANs, PINs, keys, national
-   ids, addresses. **Never commit a captured response without reading it first.**
+1. **Validate the shapes you emit against the spec.** Load
+   `openapi/rain-issuing.json`, find the operation, assert the payload matches
+   the schema. Catches most drift for a few lines of work.
+2. **Assert against `redrain`'s generated surface by reflection.** Its resource
+   classes are regenerated from the spec, so method names and keyword signatures
+   move with Rain's API. Compare `instance_method(name).parameters` in both
+   directions — a method vanishing from `redrain` means Rain removed an endpoint.
+   `test/coverage_test.rb` is the pattern.
+3. **Record real responses.** With dev credentials, capture real bodies and
+   replay them as fixtures. Redact aggressively — PANs, PINs, keys, national ids,
+   addresses. **Never commit a captured response without reading it first.**
 
-**Re-run all three after `rake sync_spec` reports a change.** Spec drift is
-exactly when a mock silently stops telling the truth.
+Separately, `test/integration/` covers what no in-process fake can: multipart
+encoding, octet-stream responses, retries, auth, and status→exception mapping.
+It skips unless `RAIN_API_KEY` is set.
+
+**Re-check everything after `rake sync_spec` reports a change.** Spec drift is
+exactly when a fake silently stops telling the truth.
 
 ---
 
@@ -460,18 +423,18 @@ exactly when a mock silently stops telling the truth.
 
 - **Don't return all four transaction payload keys.** Only the one matching
   `type`. Otherwise every variant predicate is true at once.
-- **Don't return `200 {}` where the spec says 204.** The client returns `nil`
-  for 204 and a `Hash` for 200.
+- **Don't treat 204 as an empty object.** `redrain` returns `nil` for 204 and a
+  `Hash` for 200 — the return type differs.
 - **Don't invent an envelope for lists.** Bare arrays. No `data`, no `total`.
 - **Don't return unstable list ordering.** The pager cursors on the last id.
 - **Don't skip `companyId` on user-owned records.** Cards and transactions
   carry both `userId` and `companyId`; filters rely on it.
 - **Don't let `limit=500` return 500 records.** Real Rain caps at 100, and
-  `redrain` clamps — a mock that doesn't hides the difference.
-- **Don't put real card numbers, PINs or personal data in fixtures**, even for a
-  mock. The shapes are named `encrypted*` for a reason.
-- **Don't let the mock leak into production config.** No default that points at
-  a mock; `base_url:` should be set explicitly by the test harness only.
+  `redrain` clamps — a stand-in that doesn't hides the difference.
+- **Don't put real card numbers, PINs or personal data in fixtures.** The shapes
+  are named `encrypted*` for a reason.
+- **Don't let a fake reach production.** Selection should be explicit and
+  per-record (the `provider` column convention), never a default.
 - **`applications.company.ubo.upload_document` takes `email:`**, while
   `applications.company.ubo.document.upload` takes a `uboId` path param. Two
   different endpoints doing the same job.
@@ -485,5 +448,6 @@ exactly when a mock silently stops telling the truth.
 | Generated request/response shapes | `lib/redrain/{models,resources}/` |
 | Stub patterns, all 60 endpoints | `test/resources/*_test.rb` |
 | Multipart / binary expectations | `test/upload_test.rb`, `test/http_client_test.rb` |
-| Live-API tests to point at the mock | `test/integration/` |
+| Live-API tests (multipart, octet-stream) | `test/integration/` |
 | Why the client behaves as it does | `llm/outputs/port-methodology.md` |
+| The fake we actually build, and its scope | `llm/outputs/build-rain-fake-client.md` |

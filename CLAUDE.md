@@ -7,10 +7,11 @@
   decisions were forced vs. judgement calls, the bugs review caught, and what
   is still open. Read this before changing the generator or the client's
   environment handling.
-- `llm/outputs/mocking-rain.md` — Rain's data model, state machines and
-  endpoint behaviours, for building a mock server or mock client.
+- `llm/outputs/mocking-rain.md` — reference for Rain's data model, enums, state
+  machines and per-endpoint behaviour. Applies however Rain is stood in for.
 - `llm/outputs/build-rain-fake-client.md` — scoped brief for implementing
   `Rain::FakeClient` in zay-payouts-backend, mirroring the existing Kulipa fake.
+  This is the approach we chose.
 
 ## Generated code
 

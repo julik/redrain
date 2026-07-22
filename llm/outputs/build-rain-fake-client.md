@@ -18,7 +18,7 @@ client for Rain's Issuing API, in a sibling checkout at `../redrain`.
 | `app/models/kulipa_card.rb` (`#kulipa_client`) | The `when "stub"` provider-routing convention. |
 | `test/services/issue_kulipa_card_test.rb` | Test style to match. |
 | `AGENTS.md` | House rules. Minitest under `test/`, never new RSpec. |
-| `../redrain/llm/outputs/mocking-rain.md` | Rain's data model, enums, state machines, per-endpoint behaviour. **The reference for every field name.** |
+| `../redrain/llm/outputs/mocking-rain.md` | Rain's data model, enums, state machines, per-endpoint behaviour. **The reference for every field name.** Pure reference — it takes no position on approach; this document does. |
 | `../redrain/openapi/rain-issuing.json` | Source of truth. If anything here disagrees with it, the spec wins. |
 
 ---
