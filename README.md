@@ -216,6 +216,14 @@ Integration tests hit the real dev API and skip unless `RAIN_API_KEY` is set:
 RAIN_API_KEY=... bundle exec rake test
 ```
 
+## Design notes
+
+`llm/outputs/port-methodology.md` records how the port was executed and why:
+the decision to generate from the OpenAPI spec rather than transcribe 21k lines
+of Stainless output, the deliberate divergences from the Python SDK, the bugs an
+adversarial review caught, and the open questions. `llm/plans/port-plan.md` is
+the original plan.
+
 ## What was left out of the port
 
 The Python SDK is Stainless-generated; most of its 35k lines have no Ruby

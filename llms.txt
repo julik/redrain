@@ -179,5 +179,6 @@ rake test
 
 - Repository:  https://github.com/julik/redrain
 - Port plan:   https://github.com/julik/redrain/blob/main/llm/plans/port-plan.md
+- Methodology: https://github.com/julik/redrain/blob/main/llm/outputs/port-methodology.md
 - Upstream SDK + method map: https://github.com/SignifyHQ/rain-sdk-python/blob/main/api.md
 - Vendored spec: `openapi/rain-issuing.json` (Issuing API v1.2.1)

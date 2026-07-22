@@ -1,7 +1,12 @@
 # Project notes
 
-`redrain` is a Ruby port of Rain's Python SDK (`rain-sdk`). See
-`llm/plans/port-plan.md` for the port plan and design rationale.
+`redrain` is a Ruby port of Rain's Python SDK (`rain-sdk`).
+
+- `llm/plans/port-plan.md` — what we set out to build
+- `llm/outputs/port-methodology.md` — how it was actually executed, which
+  decisions were forced vs. judgement calls, the bugs review caught, and what
+  is still open. Read this before changing the generator or the client's
+  environment handling.
 
 ## Generated code
 
