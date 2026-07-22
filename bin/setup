@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+
+cd "$(dirname "$0")/.."
+
+bundle install
+
+# The reference material the generator and the port were built against. Both
+# live under tmp/ and are gitignored; nothing in lib/ needs them at runtime.
+if [ ! -d tmp/rain-sdk-python ]; then
+  echo "Cloning the upstream Python SDK for reference..."
+  git clone --depth 1 https://github.com/SignifyHQ/rain-sdk-python.git tmp/rain-sdk-python
+fi
+
+echo
+echo "Ready. Useful commands:"
+echo "  rake test        run the suite (set RAIN_API_KEY to include integration tests)"
+echo "  rake generate    regenerate models and resources from openapi/rain-issuing.json"
+echo "  rake sync_spec   check the vendored spec against Rain's published one"
+echo "  rake doc         build YARD docs into doc/"
+echo "  bin/console      IRB with the gem loaded"

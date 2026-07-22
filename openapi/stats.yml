@@ -1,0 +1,5 @@
+# Provenance of openapi/rain-issuing.json. Mirrors tmp/rain-sdk-python/.stats.yml.
+# `rake sync_spec` re-fetches spec_url and diffs it against the vendored copy.
+spec_url: https://storage.googleapis.com/stainless-sdk-openapi-specs/signify-holdings/rain-hello-world-59c5b63b19158d831d2bd644d765f112ade48aa82570b474981fecace50e0565.yml
+api_version: 1.2.1
+configured_endpoints: 60

@@ -1,0 +1,24 @@
+# Reference clones of the Python SDK and the upstream spec live here — handy to
+# have locally, not ours to ship.
+tmp/
+
+# A gem resolves against the host app's lockfile, so ours is noise.
+/Gemfile.lock
+
+# Build output
+/pkg/
+*.gem
+
+# YARD
+/doc/
+/.yardoc/
+
+# Test output
+/coverage/
+
+# Editors and OS
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/

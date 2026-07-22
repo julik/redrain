@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+require "redrain"
+require "irb"
+
+# A client is only built when RAIN_API_KEY is set, so the console still opens
+# without credentials — handy for poking at models and the generator's output.
+#
+#   rain.users.list(limit: 5)
+#   Redrain::IssuingCard.fields.keys
+if ENV["RAIN_API_KEY"]
+  environment = (ENV["RAIN_ENVIRONMENT"] || "dev").to_sym
+  rain = Redrain::Client.new(api_key: ENV.fetch("RAIN_API_KEY"), environment: environment)
+  puts "rain => #{rain.inspect}"
+  puts "Set RAIN_ENVIRONMENT=production to point elsewhere." if environment == :dev
+else
+  puts "No RAIN_API_KEY set — `rain` is not defined. Export one to get a live client."
+end
+
+IRB.start(__FILE__)

@@ -1,0 +1,183 @@
+# Redrain
+
+> Unofficial Ruby client for Rain's Issuing API (card issuing: applications,
+> users, companies, cards, transactions, disputes, payments, signatures).
+> Port of the official Python SDK `rain-sdk`. Covers all 60 endpoints of
+> Issuing API v1.2.1. No runtime dependencies beyond stdlib.
+
+Not affiliated with Signify Holdings, Inc. "Rain" is their trademark.
+
+## When to use this gem
+
+- The host application needs to issue or manage Rain cards from Ruby.
+- Anything the Python `rain-sdk` does; method names and nesting match it
+  one-for-one, so its `api.md` doubles as documentation for this gem.
+
+## Install
+
+```ruby
+gem "redrain"
+```
+
+No other gems required.
+
+## Client construction
+
+```ruby
+rain = Redrain::Client.new(
+  api_key: ENV.fetch("RAIN_API_KEY"),  # falls back to RAIN_API_KEY
+  environment: :production,            # :dev (DEFAULT) or :production
+  timeout: 60,                         # read timeout, seconds
+  open_timeout: 5,                     # connect timeout, seconds
+  max_retries: 2,                      # 0 disables retrying
+  default_headers: {}
+)
+```
+
+| Setting | Default | Notes |
+| --- | --- | --- |
+| `environment:` | `:dev` | **Defaults to dev, not production.** Set it explicitly. Only `:dev` and `:production` are valid. |
+| `base_url:` | derived | Overrides `environment:`. Also readable from `RAIN_BASE_URL`. |
+| `max_retries:` | 2 | Retries 408/409/429/5xx and connection failures only. |
+
+Base URL precedence, highest first: `base_url:` > `RAIN_BASE_URL` > `environment:`.
+The environment is validated even when a URL overrides it, so a typo like
+`environment: :prod` raises `Redrain::ConfigurationError` immediately.
+
+## Resource tree
+
+`client.<resource>.<method>`, nesting exactly as the Python SDK does:
+
+- `applications.company` — `create` `retrieve` `update` `reapply` `upload_document`
+- `applications.company.ubo` — `update` `upload_document`
+- `applications.company.ubo.document` — `upload`
+- `applications.user` — `create` `retrieve` `update` `initiate` `reapply` `upload_document`
+- `balances` — `retrieve`
+- `cards` — `retrieve` `update` `list` `retrieve_secrets`
+- `cards.pin` — `retrieve` `update`
+- `companies` — `retrieve` `update` `list` `charge` `create_user` `initiate_payment` `retrieve_balances` `retrieve_contracts`
+- `companies.signatures` — `retrieve_payment_signature` `retrieve_withdrawal_signature`
+- `contracts` — `list`
+- `disputes` — `retrieve` `update` `list`
+- `disputes.evidence` — `list` (binary) `upload`
+- `keys` — `create` `delete`
+- `payments` — `initiate`
+- `signatures` — `retrieve_payment_signature` `retrieve_withdrawal_signature`
+- `transactions` — `retrieve` `update` `list` `create_dispute`
+- `transactions.receipt` — `retrieve` (binary) `upload`
+- `users` — `create` `retrieve` `update` `list` `delete` `create_card` `create_charge` `initiate_payment` `retrieve_balances` `retrieve_contracts`
+- `users.signatures` — `retrieve_payment_signature` `retrieve_withdrawal_signature`
+
+## Calling convention
+
+The resource id nearest the endpoint is positional; everything else is a
+keyword. Required keywords have no default; optional ones default to `nil` and
+are omitted from the request entirely.
+
+```ruby
+rain.users.create(email: "a@b.com", first_name: "Ada", last_name: "Lovelace")
+rain.users.retrieve(user_id)
+rain.cards.pin.update(card_id, encrypted_pin_block: "...")
+rain.applications.company.ubo.update(ubo_id, company_id: company_id, first_name: "Ada")
+```
+
+Parameters are snake_case in Ruby and camelCase on the wire; the gem maps them.
+Never pass camelCase.
+
+## Responses
+
+Typed objects with snake_case readers. Nested objects and arrays are typed too;
+`date-time` fields come back as `Time`.
+
+```ruby
+card = rain.cards.retrieve(id)
+card.status            # "active"
+card.limit.amount      # nested model
+card["newFieldRainJustAdded"]   # unknown keys are preserved, read by wire name
+card.to_h              # raw body as Rain sent it
+card.to_snake_h        # snake_case keys, coerced values
+```
+
+`IssuingTransaction` (`type`: spend/collateral/payment/fee) and
+`IssuingSignature` (`status`: pending/ready) are unions flattened into one class
+with predicates — `transaction.spend?`, `signature.ready?`. Only the matching
+detail field is populated; the others are `nil`.
+
+204 responses return `nil`. The two `application/octet-stream` endpoints
+(`disputes.evidence.list`, `transactions.receipt.retrieve`) return a binary
+`String`.
+
+## Pagination
+
+List endpoints are cursor-paginated (`cursor:`, `limit:`) and return an Array.
+Prefer the pager over hand-rolled cursor loops:
+
+```ruby
+rain.transactions.auto_paging_each(user_id: id) { |txn| ... }
+rain.cards.auto_paging_each.lazy.select { |c| c.status == "active" }.first(5)
+```
+
+Available on `cards`, `companies`, `disputes`, `transactions`, `users`.
+
+## File uploads
+
+```ruby
+rain.applications.user.upload_document(id, document: File.open("id.png"), type: "idCard", side: "front")
+rain.disputes.evidence.upload(id, name: "Receipt", type: "receipt", evidence: Pathname("r.pdf"))
+```
+
+`File`, `Pathname`, any `IO`, or a raw byte `String` all work. When filename or
+content type matter and can't be inferred, use
+`Redrain::Upload.new(bytes, filename:, content_type:)`. Rain caps uploads at 20 MB.
+
+## Errors
+
+All under `Redrain::Error`. `Redrain::APIStatusError` (and its per-status
+subclasses `BadRequestError`, `AuthenticationError`, `PermissionDeniedError`,
+`NotFoundError`, `ConflictError`, `UnprocessableEntityError`, `RateLimitError`,
+`InternalServerError`) carries `#status`, `#body`, `#headers`, `#request_id`,
+`#error_message`. Transport failures raise `APIConnectionError` /
+`APITimeoutError`. Local misconfiguration raises `ConfigurationError`.
+
+Rain's error bodies have no schema — treat `#body` as opaque and log
+`#request_id` for support.
+
+## Behaviours an agent should NOT change
+
+1. **Never hand-edit `lib/redrain/models/` or `lib/redrain/resources/`.** They
+   are generated. Fix `dev/generate.rb` and run `rake generate`.
+2. Don't drop the `environment:` argument in production code — the default is
+   `:dev` and a missing argument silently talks to the wrong API.
+3. Don't add runtime gem dependencies. The gem is stdlib-only on purpose.
+4. Don't send camelCase keys or `null` for "unset" — pass `nil` and let the
+   client omit the key.
+5. Don't retry 4xx yourself; the client already retries what is safe to retry.
+
+## Common pitfalls
+
+- `Redrain::Client.new` with no arguments points at **dev**.
+- Card secrets and PINs come back encrypted (`encrypted_pan`, `encrypted_pin`);
+  decrypting them is the host application's job, not this gem's.
+- `applications.company.ubo.upload_document` identifies the UBO by `email:`,
+  while `applications.company.ubo.document.upload` takes a `ubo_id` positionally.
+  They are different endpoints.
+- List endpoints return bare Arrays, not a page object — there is no `total`.
+- `rake generate` fails loudly if `dev/resource_map.yml` and the vendored spec
+  disagree about routes. That's the drift alarm; reconcile, don't bypass.
+
+## Regenerating after a Rain API bump
+
+```sh
+rake sync_spec   # re-fetch the spec, report added/removed routes and schemas
+# adopt openapi/rain-issuing.json, update openapi/stats.yml,
+# reconcile dev/resource_map.yml
+rake generate
+rake test
+```
+
+## Resources
+
+- Repository:  https://github.com/julik/redrain
+- Port plan:   https://github.com/julik/redrain/blob/main/llm/plans/port-plan.md
+- Upstream SDK + method map: https://github.com/SignifyHQ/rain-sdk-python/blob/main/api.md
+- Vendored spec: `openapi/rain-issuing.json` (Issuing API v1.2.1)

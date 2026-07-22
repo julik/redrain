@@ -1,0 +1,81 @@
+# operationId route -> Ruby resource + method name.
+#
+# This is the one thing the OpenAPI spec cannot tell us: Stainless keeps the
+# resource tree in its own config, so we transcribe it from the Python SDK to
+# keep our call sites identical to theirs. Source: tmp/rain-sdk-python/api.md.
+#
+# Keys are "VERB /path" exactly as they appear in openapi/rain-issuing.json.
+# Values are the dotted resource chain plus method name. `rake generate` fails
+# loudly if the spec and this file ever disagree about which routes exist.
+---
+
+  "POST /applications/company": applications.company.create
+  "GET /applications/company/{companyId}": applications.company.retrieve
+  "PATCH /applications/company/{companyId}": applications.company.update
+  "PUT /applications/company/{companyId}/reapply": applications.company.reapply
+  "PUT /applications/company/{companyId}/document": applications.company.upload_document
+  "PATCH /applications/company/{companyId}/ubo/{uboId}": applications.company.ubo.update
+  "PUT /applications/company/{companyId}/ubo/document": applications.company.ubo.upload_document
+  "PUT /applications/company/{companyId}/ubo/{uboId}/document": applications.company.ubo.document.upload
+  "POST /applications/user": applications.user.create
+  "GET /applications/user/{userId}": applications.user.retrieve
+  "PATCH /applications/user/{userId}": applications.user.update
+  "POST /applications/user/initiate": applications.user.initiate
+  "PUT /applications/user/{userId}/reapply": applications.user.reapply
+  "PUT /applications/user/{userId}/document": applications.user.upload_document
+
+  "GET /balances": balances.retrieve
+
+  "GET /cards/{cardId}": cards.retrieve
+  "PATCH /cards/{cardId}": cards.update
+  "GET /cards": cards.list
+  "GET /cards/{cardId}/secrets": cards.retrieve_secrets
+  "GET /cards/{cardId}/pin": cards.pin.retrieve
+  "PUT /cards/{cardId}/pin": cards.pin.update
+
+  "GET /companies/{companyId}": companies.retrieve
+  "PATCH /companies/{companyId}": companies.update
+  "GET /companies": companies.list
+  "POST /companies/{companyId}/charges": companies.charge
+  "POST /companies/{companyId}/users": companies.create_user
+  "POST /companies/{companyId}/payments": companies.initiate_payment
+  "GET /companies/{companyId}/balances": companies.retrieve_balances
+  "GET /companies/{companyId}/contracts": companies.retrieve_contracts
+  "GET /companies/{companyId}/signatures/payments": companies.signatures.retrieve_payment_signature
+  "GET /companies/{companyId}/signatures/withdrawals": companies.signatures.retrieve_withdrawal_signature
+
+  "GET /contracts": contracts.list
+
+  "GET /disputes/{disputeId}": disputes.retrieve
+  "PATCH /disputes/{disputeId}": disputes.update
+  "GET /disputes": disputes.list
+  "GET /disputes/{disputeId}/evidence": disputes.evidence.list
+  "PUT /disputes/{disputeId}/evidence": disputes.evidence.upload
+
+  "POST /keys": keys.create
+  "DELETE /keys/{keyId}": keys.delete
+
+  "POST /payments": payments.initiate
+
+  "GET /signatures/payments": signatures.retrieve_payment_signature
+  "GET /signatures/withdrawals": signatures.retrieve_withdrawal_signature
+
+  "GET /transactions/{transactionId}": transactions.retrieve
+  "PATCH /transactions/{transactionId}": transactions.update
+  "GET /transactions": transactions.list
+  "POST /transactions/{transactionId}/disputes": transactions.create_dispute
+  "GET /transactions/{transactionId}/receipt": transactions.receipt.retrieve
+  "PUT /transactions/{transactionId}/receipt": transactions.receipt.upload
+
+  "POST /users": users.create
+  "GET /users/{userId}": users.retrieve
+  "PATCH /users/{userId}": users.update
+  "GET /users": users.list
+  "DELETE /users/{userId}": users.delete
+  "POST /users/{userId}/cards": users.create_card
+  "POST /users/{userId}/charges": users.create_charge
+  "POST /users/{userId}/payments": users.initiate_payment
+  "GET /users/{userId}/balances": users.retrieve_balances
+  "GET /users/{userId}/contracts": users.retrieve_contracts
+  "GET /users/{userId}/signatures/payments": users.signatures.retrieve_payment_signature
+  "GET /users/{userId}/signatures/withdrawals": users.signatures.retrieve_withdrawal_signature
