@@ -7,6 +7,8 @@
   decisions were forced vs. judgement calls, the bugs review caught, and what
   is still open. Read this before changing the generator or the client's
   environment handling.
+- `llm/outputs/mocking-rain.md` — Rain's data model, state machines and
+  endpoint behaviours, for building a mock server or mock client.
 
 ## Generated code
 
