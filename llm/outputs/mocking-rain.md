@@ -13,11 +13,8 @@ the spec wins.**
 
 This is a **reference**, not a recommendation. It describes Rain, and applies
 equally however you choose to stand in for it — a fake client, a fake server,
-WebMock stubs, or fixtures.
-
-For the decision we actually made and the brief that follows from it, see
-**`build-rain-fake-client.md`**: we mock Rain with an in-process fake client,
-mirroring the existing Kulipa fake in `zay-payouts-backend`.
+WebMock stubs, or fixtures. Which of those to build is a decision for the
+consuming application, and belongs in that application's own notes.
 
 For why the `redrain` client behaves as it does, see `port-methodology.md`.
 
@@ -433,8 +430,8 @@ exactly when a fake silently stops telling the truth.
   `redrain` clamps — a stand-in that doesn't hides the difference.
 - **Don't put real card numbers, PINs or personal data in fixtures.** The shapes
   are named `encrypted*` for a reason.
-- **Don't let a fake reach production.** Selection should be explicit and
-  per-record (the `provider` column convention), never a default.
+- **Don't let a fake reach production.** Selection should be explicit, never a
+  default that silently applies.
 - **`applications.company.ubo.upload_document` takes `email:`**, while
   `applications.company.ubo.document.upload` takes a `uboId` path param. Two
   different endpoints doing the same job.
@@ -450,4 +447,3 @@ exactly when a fake silently stops telling the truth.
 | Multipart / binary expectations | `test/upload_test.rb`, `test/http_client_test.rb` |
 | Live-API tests (multipart, octet-stream) | `test/integration/` |
 | Why the client behaves as it does | `llm/outputs/port-methodology.md` |
-| The fake we actually build, and its scope | `llm/outputs/build-rain-fake-client.md` |
