@@ -9,6 +9,8 @@
   environment handling.
 - `llm/outputs/mocking-rain.md` — Rain's data model, state machines and
   endpoint behaviours, for building a mock server or mock client.
+- `llm/outputs/build-rain-fake-client.md` — scoped brief for implementing
+  `Rain::FakeClient` in zay-payouts-backend, mirroring the existing Kulipa fake.
 
 ## Generated code
 
