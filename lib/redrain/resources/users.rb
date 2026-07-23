@@ -12,12 +12,12 @@ module Redrain
     # Covers 10 endpoints: POST /users, GET /users/:userId, PATCH /users/:userId, GET /users,
     # DELETE /users/:userId, POST /users/:userId/cards, POST /users/:userId/charges, POST
     # /users/:userId/payments, GET /users/:userId/balances, GET /users/:userId/contracts.
-    class Users < Resource
+    class UsersResource < Resource
       # Backs +client.users.signatures+.
       #
       # Covers 2 endpoints: GET /users/:userId/signatures/payments, GET
       # /users/:userId/signatures/withdrawals.
-      class Signatures < Resource
+      class SignaturesResource < Resource
         # Get payment signature for a user
         #
         # This endpoint retrieves the payment signature for a specific user. The signature is
@@ -94,7 +94,7 @@ module Redrain
       end
 
       include Redrain::Page
-      sub_resource :signatures, Signatures
+      sub_resource :signatures, SignaturesResource
 
       # Create an authorized user
       #

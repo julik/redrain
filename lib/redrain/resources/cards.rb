@@ -11,11 +11,11 @@ module Redrain
     #
     # Covers 4 endpoints: GET /cards/:cardId, PATCH /cards/:cardId, GET /cards, GET
     # /cards/:cardId/secrets.
-    class Cards < Resource
+    class CardsResource < Resource
       # Backs +client.cards.pin+.
       #
       # Covers 2 endpoints: GET /cards/:cardId/pin, PUT /cards/:cardId/pin.
-      class Pin < Resource
+      class PinResource < Resource
         # Get a card's PIN
         #
         # Retrieve the encrypted PIN for a specific card
@@ -47,7 +47,7 @@ module Redrain
       end
 
       include Redrain::Page
-      sub_resource :pin, Pin
+      sub_resource :pin, PinResource
 
       # Get a card by its id
       #

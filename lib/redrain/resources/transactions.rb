@@ -11,12 +11,12 @@ module Redrain
     #
     # Covers 4 endpoints: GET /transactions/:transactionId, PATCH /transactions/:transactionId,
     # GET /transactions, POST /transactions/:transactionId/disputes.
-    class Transactions < Resource
+    class TransactionsResource < Resource
       # Backs +client.transactions.receipt+.
       #
       # Covers 2 endpoints: GET /transactions/:transactionId/receipt, PUT
       # /transactions/:transactionId/receipt.
-      class Receipt < Resource
+      class ReceiptResource < Resource
         # Get a transaction's receipt
         #
         # This endpoint retrieves the receipt for a specific transaction. The receipt is
@@ -59,7 +59,7 @@ module Redrain
       end
 
       include Redrain::Page
-      sub_resource :receipt, Receipt
+      sub_resource :receipt, ReceiptResource
 
       # Get a transaction by its id
       #

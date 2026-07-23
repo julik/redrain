@@ -13,12 +13,12 @@ module Redrain
     # /companies, POST /companies/:companyId/charges, POST /companies/:companyId/users, POST
     # /companies/:companyId/payments, GET /companies/:companyId/balances, GET
     # /companies/:companyId/contracts.
-    class Companies < Resource
+    class CompaniesResource < Resource
       # Backs +client.companies.signatures+.
       #
       # Covers 2 endpoints: GET /companies/:companyId/signatures/payments, GET
       # /companies/:companyId/signatures/withdrawals.
-      class Signatures < Resource
+      class SignaturesResource < Resource
         # Get payment signature for a company
         #
         # Retrieve the payment signature for a company, which is required for completing payment
@@ -109,7 +109,7 @@ module Redrain
       end
 
       include Redrain::Page
-      sub_resource :signatures, Signatures
+      sub_resource :signatures, SignaturesResource
 
       # Get a company by ID
       #

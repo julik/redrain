@@ -10,7 +10,7 @@ module Redrain
     # Backs +client.signatures+.
     #
     # Covers 2 endpoints: GET /signatures/payments, GET /signatures/withdrawals.
-    class Signatures < Resource
+    class SignaturesResource < Resource
       # Get payment signature for an authorized user tenant
       #
       # This endpoint retrieves the payment signature for an authorized user tenant. The

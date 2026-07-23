@@ -10,22 +10,22 @@ module Redrain
     # Backs +client.applications+.
     #
     # Covers 0 endpoints: .
-    class Applications < Resource
+    class ApplicationsResource < Resource
       # Backs +client.applications.company+.
       #
       # Covers 5 endpoints: POST /applications/company, GET /applications/company/:companyId,
       # PATCH /applications/company/:companyId, PUT /applications/company/:companyId/reapply,
       # PUT /applications/company/:companyId/document.
-      class Company < Resource
+      class CompanyResource < Resource
         # Backs +client.applications.company.ubo+.
         #
         # Covers 2 endpoints: PATCH /applications/company/:companyId/ubo/:uboId, PUT
         # /applications/company/:companyId/ubo/document.
-        class Ubo < Resource
+        class UboResource < Resource
           # Backs +client.applications.company.ubo.document+.
           #
           # Covers PUT /applications/company/:companyId/ubo/:uboId/document.
-          class Document < Resource
+          class DocumentResource < Resource
             # Upload a UBO's document to support a company's corporate application
             #
             # Uploads a document for a company's Ultimate Beneficial Owner (UBO) to support the
@@ -67,7 +67,7 @@ module Redrain
             end
           end
 
-          sub_resource :document, Document
+          sub_resource :document, DocumentResource
 
           # Update a company UBO's application
           #
@@ -162,7 +162,7 @@ module Redrain
           end
         end
 
-        sub_resource :ubo, Ubo
+        sub_resource :ubo, UboResource
 
         # Create a corporate account application
         #
@@ -355,7 +355,7 @@ module Redrain
       # Covers 6 endpoints: POST /applications/user, GET /applications/user/:userId, PATCH
       # /applications/user/:userId, POST /applications/user/initiate, PUT
       # /applications/user/:userId/reapply, PUT /applications/user/:userId/document.
-      class User < Resource
+      class UserResource < Resource
         # Create a consumer application for a user
         #
         # Submits an application to create a consumer account for a user. The application can be
@@ -634,8 +634,8 @@ module Redrain
         end
       end
 
-      sub_resource :company, Company
-      sub_resource :user, User
+      sub_resource :company, CompanyResource
+      sub_resource :user, UserResource
 
     end
   end

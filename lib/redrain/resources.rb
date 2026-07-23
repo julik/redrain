@@ -17,27 +17,27 @@ require_relative "resources/users"
 
 module Redrain
   class Client
-    # @return [Resources::Applications] the applications resource, memoised
-    def applications = @resources[:applications] ||= Resources::Applications.new(self)
-    # @return [Resources::Balances] the balances resource, memoised
-    def balances = @resources[:balances] ||= Resources::Balances.new(self)
-    # @return [Resources::Cards] the cards resource, memoised
-    def cards = @resources[:cards] ||= Resources::Cards.new(self)
-    # @return [Resources::Companies] the companies resource, memoised
-    def companies = @resources[:companies] ||= Resources::Companies.new(self)
-    # @return [Resources::Contracts] the contracts resource, memoised
-    def contracts = @resources[:contracts] ||= Resources::Contracts.new(self)
-    # @return [Resources::Disputes] the disputes resource, memoised
-    def disputes = @resources[:disputes] ||= Resources::Disputes.new(self)
-    # @return [Resources::Keys] the keys resource, memoised
-    def keys = @resources[:keys] ||= Resources::Keys.new(self)
-    # @return [Resources::Payments] the payments resource, memoised
-    def payments = @resources[:payments] ||= Resources::Payments.new(self)
-    # @return [Resources::Signatures] the signatures resource, memoised
-    def signatures = @resources[:signatures] ||= Resources::Signatures.new(self)
-    # @return [Resources::Transactions] the transactions resource, memoised
-    def transactions = @resources[:transactions] ||= Resources::Transactions.new(self)
-    # @return [Resources::Users] the users resource, memoised
-    def users = @resources[:users] ||= Resources::Users.new(self)
+    # @return [Resources::ApplicationsResource] the applications resource, memoised
+    def applications = @resources[:applications] ||= Resources::ApplicationsResource.new(self)
+    # @return [Resources::BalancesResource] the balances resource, memoised
+    def balances = @resources[:balances] ||= Resources::BalancesResource.new(self)
+    # @return [Resources::CardsResource] the cards resource, memoised
+    def cards = @resources[:cards] ||= Resources::CardsResource.new(self)
+    # @return [Resources::CompaniesResource] the companies resource, memoised
+    def companies = @resources[:companies] ||= Resources::CompaniesResource.new(self)
+    # @return [Resources::ContractsResource] the contracts resource, memoised
+    def contracts = @resources[:contracts] ||= Resources::ContractsResource.new(self)
+    # @return [Resources::DisputesResource] the disputes resource, memoised
+    def disputes = @resources[:disputes] ||= Resources::DisputesResource.new(self)
+    # @return [Resources::KeysResource] the keys resource, memoised
+    def keys = @resources[:keys] ||= Resources::KeysResource.new(self)
+    # @return [Resources::PaymentsResource] the payments resource, memoised
+    def payments = @resources[:payments] ||= Resources::PaymentsResource.new(self)
+    # @return [Resources::SignaturesResource] the signatures resource, memoised
+    def signatures = @resources[:signatures] ||= Resources::SignaturesResource.new(self)
+    # @return [Resources::TransactionsResource] the transactions resource, memoised
+    def transactions = @resources[:transactions] ||= Resources::TransactionsResource.new(self)
+    # @return [Resources::UsersResource] the users resource, memoised
+    def users = @resources[:users] ||= Resources::UsersResource.new(self)
   end
 end

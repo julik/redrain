@@ -10,7 +10,7 @@ module Redrain
     # Backs +client.keys+.
     #
     # Covers 2 endpoints: POST /keys, DELETE /keys/:keyId.
-    class Keys < Resource
+    class KeysResource < Resource
       # Create a key
       #
       # This endpoint allows for the creation of a new key with a specified name and expiration

@@ -10,7 +10,7 @@ module Redrain
     # Backs +client.payments+.
     #
     # Covers POST /payments.
-    class Payments < Resource
+    class PaymentsResource < Resource
       # Initiate a payment for an authorized user tenant
       #
       # This endpoint initiates a payment for an authorized user tenant. The request includes

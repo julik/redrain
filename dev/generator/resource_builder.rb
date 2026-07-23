@@ -45,7 +45,11 @@ module Generator
         parent = resource_for(chain[0..-2]) if chain.size > 1
         definition = ResourceDef.new(
           chain: chain,
-          class_name: Naming.pascal(chain.last),
+          # Suffixed so class names stay singular-safe: a bare +Cards+ is a
+          # plural noun that misleads and trips the Rails inflector. Every node
+          # in the tree gets it, so the convention is uniform at any depth
+          # (+companies.signatures+ -> +SignaturesResource+, not +Signatures+).
+          class_name: "#{Naming.pascal(chain.last)}Resource",
           module_path: chain.map { |segment| Naming.pascal(segment) },
           methods: [],
           children: [],

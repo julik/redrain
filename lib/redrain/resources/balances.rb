@@ -10,7 +10,7 @@ module Redrain
     # Backs +client.balances+.
     #
     # Covers GET /balances.
-    class Balances < Resource
+    class BalancesResource < Resource
       # Get an authorized user tenant's credit balances
       #
       # Retrieves the credit balances for an authorized user tenant. This includes details such

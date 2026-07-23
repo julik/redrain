@@ -10,12 +10,12 @@ module Redrain
     # Backs +client.disputes+.
     #
     # Covers 3 endpoints: GET /disputes/:disputeId, PATCH /disputes/:disputeId, GET /disputes.
-    class Disputes < Resource
+    class DisputesResource < Resource
       # Backs +client.disputes.evidence+.
       #
       # Covers 2 endpoints: GET /disputes/:disputeId/evidence, PUT
       # /disputes/:disputeId/evidence.
-      class Evidence < Resource
+      class EvidenceResource < Resource
         # Get a dispute's file evidence
         #
         # Retrieve the file evidence associated with a dispute.
@@ -62,7 +62,7 @@ module Redrain
       end
 
       include Redrain::Page
-      sub_resource :evidence, Evidence
+      sub_resource :evidence, EvidenceResource
 
       # Get a dispute by its ID
       #

@@ -10,7 +10,7 @@ module Redrain
     # Backs +client.contracts+.
     #
     # Covers GET /contracts.
-    class Contracts < Resource
+    class ContractsResource < Resource
       # Get smart contract information for an authorized user tenant
       #
       # Retrieve the smart contract information for a specific authorized user tenant.
